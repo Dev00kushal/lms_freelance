@@ -42,6 +42,11 @@ class MainWindow:
         self.setup_user_management()
         self.setup_borrow_return()
 
+        # Footer with credit
+        footer_label = ttkb.Label(self.root, text="Made with Ankit Limbu", 
+                                  font=("Helvetica", 12), bootstyle="light")
+        footer_label.pack(side=BOTTOM, pady=10)
+
     def setup_book_management(self):
         input_frame = ttkb.Frame(self.book_frame)
         input_frame.pack(fill=X, pady=(0, 20))
@@ -157,7 +162,9 @@ class MainWindow:
         for isbn, user_id in borrowed_books.items():
             book = self.library.get_book_by_isbn(isbn)  # Assuming this method exists
             book_name = book.title if book else "Unknown"
-            self.borrowed_books_listbox.insert(tk.END, f"Book: {book_name}, ISBN: {isbn}, User: {user_id}")
+            user = self.library.get_user_by_id(user_id)  # Assuming this method exists
+            user_name = user.name if user else "Unknown"
+            self.borrowed_books_listbox.insert(tk.END, f"Book: {book_name}, ISBN: {isbn}, User: {user_name}")
 
     def show_books(self):
         self.show_table_window("Books", ["Title", "Author", "ISBN"], 
@@ -173,14 +180,28 @@ class MainWindow:
         for isbn, user_id in borrowed_books.items():
             book = self.library.get_book_by_isbn(isbn)
             book_name = book.title if book else "Unknown"
-            data.append((book_name, isbn, user_id))
+            user = self.library.get_user_by_id(user_id)
+            user_name = user.name if user else "Unknown"
+            data.append((book_name, isbn, user_name))
         self.show_table_window("Borrowed Books", ["Book Name", "ISBN", "User"], data)
-
 
     def show_table_window(self, title, columns, data):
         table_window = tk.Toplevel(self.root)
         table_window.title(title)
         table_window.geometry("600x400")
+
+        search_frame = ttkb.Frame(table_window, padding="10")
+        search_frame.pack(fill=X, padx=20)
+
+        search_label = ttkb.Label(search_frame, text="Search:")
+        search_label.pack(side=LEFT)
+
+        search_var = tk.StringVar()
+        search_entry = ttkb.Entry(search_frame, textvariable=search_var, font=("Helvetica", 12))
+        search_entry.pack(side=LEFT, fill=X, expand=YES)
+
+        filter_button = ttkb.Button(search_frame, text="Filter", command=lambda: self.filter_table(tree, search_var.get()))
+        filter_button.pack(side=LEFT, padx=10)
 
         tree = ttk.Treeview(table_window, columns=columns, show='headings')
         tree.pack(fill=tk.BOTH, expand=YES, padx=20, pady=20)
@@ -189,6 +210,14 @@ class MainWindow:
             tree.heading(col, text=col)
             tree.column(col, anchor=tk.W)
 
+        for row in data:
+            tree.insert('', tk.END, values=row)
+
+    def filter_table(self, tree, search_text):
+        for item in tree.get_children():
+            tree.delete(item)
+        
+        data = [(b.title, b.author, b.isbn) for b in self.library.get_books() if search_text.lower() in b.title.lower()]
         for row in data:
             tree.insert('', tk.END, values=row)
 

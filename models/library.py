@@ -1,4 +1,3 @@
-from tkinter import messagebox
 class Library:
     def __init__(self):
         self.books = []  # List to store book instances
@@ -12,7 +11,6 @@ class Library:
         self.users.append(user)
 
     def borrow_book(self, user_id, isbn):
-        # Example implementation
         for book in self.books:
             if book.isbn == isbn:
                 if isbn not in self.borrowed_books:
@@ -21,7 +19,6 @@ class Library:
         return False
 
     def return_book(self, user_id, isbn):
-        # Example implementation
         if isbn in self.borrowed_books and self.borrowed_books[isbn] == user_id:
             del self.borrowed_books[isbn]
             return True
@@ -40,4 +37,10 @@ class Library:
         for book in self.books:
             if book.isbn == isbn:
                 return book
+        return None
+
+    def get_user_by_id(self, user_id):
+        for user in self.users:
+            if user.user_id == user_id:
+                return user
         return None
